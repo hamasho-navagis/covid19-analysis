@@ -44,15 +44,11 @@ def add_lat_lng(csv_content):
         return f'{line},{ll[0]:.2f},{ll[1]:.2f}'
 
     lines = csv_content.splitlines()
-    lines = lines[1:]  # ignore first emply line
     result = [lines[0] + ',Lat,Lng'] + [add_ll(l) for l in lines[1:]]
     return '\n'.join(result) + '\n'
 
 
 def add_lat_lng_col_to_file(src, dist):
-    if os.path.exists(dist):
-        print(f'already exists: {dist}')
-        return
     with open(src) as src_file:
         content = src_file.read()
     new_content = add_lat_lng(content)
