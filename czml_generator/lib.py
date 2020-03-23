@@ -6,13 +6,14 @@ import pandas as pd
 
 PY_DIR = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 PROJ_DIR = os.path.dirname(PY_DIR)
+DS_PATH = f'{PROJ_DIR}/datasets'
 
 '''Dataset downloaded from Europian research center
 Header: DateRep,Day,Month,Year,Cases,Deaths,Countries and territories,GeoId
 '''
-RAW_DS_PATH = f'{PROJ_DIR}/datasets/COVID-19-geographic-disbtribution-worldwide-2020-03-19.csv'
+RAW_DS_PATH = f'{DS_PATH}/COVID-19-geographic-disbtribution-worldwide-2020-03-19.csv'
 '''Add Lat/Long/TotalCases/TotalDeaths'''
-NEW_DS_PATH = f'{PROJ_DIR}/datasets/COVID-19-full.csv'
+NEW_DS_PATH = f'{DS_PATH}/COVID-19-full.csv'
 
 
 def cc2ll(cc):
