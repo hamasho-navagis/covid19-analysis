@@ -1,15 +1,17 @@
 import json
-from lib import PROJ_DIR, line2record
+from lib import PROJ_DIR
+from data import get_world_accum_cases
 
 
-COVID19_PATH = f'{PROJ_DIR}/datasets/' \
-    + 'COVID-19-geographic-disbtribution-worldwide-2020-03-19-latlon.csv'
 COVID19_CZML_PATH = f'{PROJ_DIR}/datasets/' \
     + 'COVID-19-geographic-disbtribution-worldwide-2020-03-19-latlon.czml'
 
 
-def record2id(rec):
-    return f'{rec.country_code}-{rec.date.isoformat()}'
+def column2id(col):
+    id = col['Country/Region']
+    if s := col['Province/State']:
+        id = f'{id} - {s}'
+    return f'{id}-{col["Date"].isoformat()}'
 
 
 def isodate(d, end=False):
@@ -25,14 +27,14 @@ def isodate(d, end=False):
     return f'{d}T23:59:59Z' if end else f'{d}T00:00:00Z'
 
 
-def record2packet(rec):
-    avail = f'{isodate(rec.date)}/{isodate(rec.date, end=True)}'
+def column2packet(col):
+    avail = f'{isodate(col["Date"])}/{isodate(col["Date"], end=True)}'
     axis = 250000 * 1
     packet = {
-        'id': record2id(rec),
+        'id': column2id(col),
         'availability': avail,
         'position': {
-            'cartographicDegrees': [rec.lng, rec.lat, 1000000],
+            'cartographicDegrees': [col['Long'], col['Lat'], 1000000],
         },
         'ellipse': {
             'semiMinorAxis': axis,
@@ -51,9 +53,7 @@ def record2packet(rec):
 
 
 def convert_covid19_to_czml():
-    with open(COVID19_PATH) as f:
-        data = f.read()
-    data = data.splitlines()[1:]
+    df = get_world_accum_cases()
     doc = [{
         'id': 'document',
         'name': 'COVID-19',
@@ -66,15 +66,10 @@ def convert_covid19_to_czml():
             'step': 'SYSTEM_CLOCK_MULTIPLIER',
         },
     }]
-    records = [line2record(d) for d in data]
-    dates = set()
-    for rec in records:
-        dates.add(rec.date)
-        doc.append(record2packet(rec))
-    start = min(dates)
-    end = max(dates)
-    max_cases = max([r.cases for r in records])
-    print(max_cases)
+    packets = [column2packet(d) for _, d in df.iterrows()]
+    doc += packets
+    start = min(df['Date'])
+    end = max(df['Date'])
     doc[0]['clock']['interval'] = f'{isodate(start)}/{isodate(end)}'
     doc[0]['clock']['currentTime'] = isodate(start)
 

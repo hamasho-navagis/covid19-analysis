@@ -2,9 +2,6 @@ import pandas as pd
 from lib import DS_PATH
 
 
-TABLES = {}
-
-
 def load_full_df():
     full_table = pd.read_csv(f'{DS_PATH}/covid_19_clean_complete.csv',
                              parse_dates=['Date'])
@@ -36,7 +33,7 @@ def load_full_df():
     row_latest_grouped = row_latest.groupby(
         'Country/Region')['Confirmed', 'Deaths', 'Recovered'].sum().reset_index()
 
-    TABLES.update(dict(
+    return dict(
         full_table=full_table,
         ship=ship,
         china=china,
@@ -47,13 +44,16 @@ def load_full_df():
         full_latest_grouped=full_latest_grouped,
         china_latest_grouped=china_latest_grouped,
         row_latest_grouped=row_latest_grouped,
-    ))
+    )
 
 
 def get_world_accum_cases():
     full = TABLES['full_table']
-    df = full.groupby(['Date', 'Country/Region']
-                      )['Confirmed', 'Deaths', 'Recovered'].max()
+    df = full.groupby(['Date', 'Country/Region', 'Province/State']
+                      )['Confirmed', 'Deaths', 'Recovered', 'Lat', 'Long'].max()
     df = df.reset_index()
     df['Date'] = pd.to_datetime(df['Date'])
-    df['Date'] = df['Date'].dt.strftime('%m/%d/%Y')
+    return df
+
+
+TABLES = load_full_df()
